@@ -1,0 +1,295 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOhS/PsWXx4MDZ9xR4ALbbX",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/2303A52237/GENERATIVE-AI/blob/main/Genetic%20AI-04\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "1.(1 ponto) Design a simple ANN architecture with one input and one output layer (no hidden layer). Assume a linear activation function in the output layer. • Write Python code for a backpropagation algorithm with gradient descent optimization to update weights and bias parameters of the ANN model with training data shown in Table\n",
+        "2. Calculate the mean square error with training and testing data shown in Table 2. • Write Python code that reads the input data [x1, x2, and x3] from the user. Predict the output with deployed ANN model Tabela 1: Training Data x1 x2 x3 y 0.1 0.2 0.3 0.14 0.2 0.3 0.4 0.20 0.3 0.4 0.5 0.26 0.5 0.6 0.7 0.38 0.1 0.3 0.5 0.22 0.2 0.4 0.6 0.28 0.3 0.5 0.7 0.34 0.4 0.6 0.8 0.40 0.5 0.7 0.1 0.22 Tabela 2: Test Data x1 x2 x3 y 0.6 0.7 0.8 0.44 0.7 0.8 0.9 0.50"
+      ],
+      "metadata": {
+        "id": "9FBRrIyZTd7o"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "def sigmoid(x):\n",
+        "    return 1 / (1 + np.exp(-x))\n",
+        "def sigmoid_derivative(x):\n",
+        "    return x * (1 - x)\n",
+        "def initialize_parameters(input_size):\n",
+        "    weights = np.random.rand(input_size)\n",
+        "    bias = np.random.rand()\n",
+        "    return weights, bias\n",
+        "def forward_propagation(X, weights, bias):\n",
+        "    weighted_sum = np.dot(X, weights) + bias\n",
+        "    output = sigmoid(weighted_sum)\n",
+        "    return output\n",
+        "def backpropagation(X, y, output, weights, bias, learning_rate):\n",
+        "    error = y - output\n",
+        "    d_output = error * sigmoid_derivative(output)\n",
+        "\n",
+        "    d_weights = np.dot(X.T, d_output)\n",
+        "    d_bias = np.sum(d_output)\n",
+        "\n",
+        "    weights += learning_rate * d_weights\n",
+        "    bias += learning_rate * d_bias\n",
+        "\n",
+        "    return weights, bias\n",
+        "def mean_square_error(y_true, y_pred):\n",
+        "    return np.mean((y_true - y_pred) ** 2)\n",
+        "def train_model(X_train, y_train, weights, bias, learning_rate, epochs):\n",
+        "    for epoch in range(epochs):\n",
+        "        for i in range(len(X_train)):\n",
+        "            output = forward_propagation(X_train[i], weights, bias)\n",
+        "            weights, bias = backpropagation(X_train[i], y_train[i], output, weights, bias, learning_rate)\n",
+        "        if epoch % 1000 == 0:\n",
+        "            loss = mean_square_error(y_train, [forward_propagation(x, weights, bias) for x in X_train])\n",
+        "            print(f\"Epoch {epoch}, Loss: {loss}\")\n",
+        "    return weights, bias\n",
+        "def predict(X, weights, bias):\n",
+        "    return forward_propagation(X, weights, bias)\n",
+        "X_train = np.array([\n",
+        "    [0.1, 0.2, 0.3],\n",
+        "    [0.2, 0.3, 0.4],\n",
+        "    [0.3, 0.4, 0.5],\n",
+        "    [0.5, 0.6, 0.7],\n",
+        "    [0.1, 0.3, 0.5],\n",
+        "    [0.2, 0.4, 0.6],\n",
+        "    [0.3, 0.5, 0.7],\n",
+        "    [0.4, 0.6, 0.8],\n",
+        "    [0.5, 0.7, 0.1]\n",
+        "])\n",
+        "\n",
+        "y_train = np.array([0.5349, 0.5498, 0.5646, 0.5939, 0.5548, 0.5695, 0.5842, 0.5987, 0.5548])\n",
+        "X_test = np.array([\n",
+        "    [0.6, 0.7, 0.8],\n",
+        "    [0.7, 0.8, 0.9]\n",
+        "])\n",
+        "\n",
+        "y_test = np.array([0.6083, 0.6225])\n",
+        "input_size = X_train.shape[1]\n",
+        "weights, bias = initialize_parameters(input_size)\n",
+        "learning_rate = 0.1\n",
+        "epochs = 10000\n",
+        "weights, bias = train_model(X_train, y_train, weights, bias, learning_rate, epochs)\n",
+        "y_train_pred = np.array([predict(x, weights, bias) for x in X_train])\n",
+        "train_mse = mean_square_error(y_train, y_train_pred)\n",
+        "print(f\"Training MSE: {train_mse}\")\n",
+        "y_test_pred = np.array([predict(x, weights, bias) for x in X_test])\n",
+        "test_mse = mean_square_error(y_test, y_test_pred)\n",
+        "print(f\"Testing MSE: {test_mse}\")\n",
+        "user_input = np.array([float(input(f\"Enter x{i+1}: \")) for i in range(input_size)])\n",
+        "predicted_output = predict(user_input, weights, bias)\n",
+        "print(f\"Predicted Output: {predicted_output}\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "NajH8BXmTlgY",
+        "outputId": "aaff2c99-5761-4cb1-f87f-ad5a424a1706"
+      },
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Epoch 0, Loss: 0.013004562870987262\n",
+            "Epoch 1000, Loss: 1.900435468224505e-05\n",
+            "Epoch 2000, Loss: 3.380126962464839e-06\n",
+            "Epoch 3000, Loss: 2.7703445035543832e-06\n",
+            "Epoch 4000, Loss: 2.447062732566594e-06\n",
+            "Epoch 5000, Loss: 2.164987584813637e-06\n",
+            "Epoch 6000, Loss: 1.9155440327323254e-06\n",
+            "Epoch 7000, Loss: 1.6948601180060457e-06\n",
+            "Epoch 8000, Loss: 1.4996127510599036e-06\n",
+            "Epoch 9000, Loss: 1.3268684660772048e-06\n",
+            "Training MSE: 1.1741764566694957e-06\n",
+            "Testing MSE: 4.30154748859546e-06\n",
+            "Enter x1: 0.6\n",
+            "Enter x2: 0.7\n",
+            "Enter x3: 0.8\n",
+            "Predicted Output: 0.606330206847385\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "2.(1 ponto) Design a simple ANN architecture with one input and one output layer (no hidden layer). Assume a sigmoid activation function shown in the equation 1 in the output layer. f (x) = 1 1 + e−x (1) • Write Python code for a backpropagation algorithm with gradient descent optimization to update weights and bias parameters of the ANN model with training data shown in Table"
+      ],
+      "metadata": {
+        "id": "1tRcah_8UZ-_"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "\n",
+        "# Sigmoid activation function\n",
+        "def sigmoid(x):\n",
+        "    return 1 / (1 + np.exp(-x))\n",
+        "\n",
+        "# Derivative of the sigmoid function\n",
+        "def sigmoid_derivative(x):\n",
+        "    return x * (1 - x)\n",
+        "\n",
+        "# Initialize weights and bias\n",
+        "def initialize_parameters(input_size):\n",
+        "    weights = np.random.rand(input_size)\n",
+        "    bias = np.random.rand()\n",
+        "    return weights, bias\n",
+        "\n",
+        "# Forward propagation\n",
+        "def forward_propagation(X, weights, bias):\n",
+        "    weighted_sum = np.dot(X, weights) + bias\n",
+        "    output = sigmoid(weighted_sum)\n",
+        "    return output\n",
+        "\n",
+        "# Backpropagation and gradient descent\n",
+        "def backpropagation(X, y, output, weights, bias, learning_rate):\n",
+        "    error = y - output\n",
+        "    d_output = error * sigmoid_derivative(output)\n",
+        "\n",
+        "    d_weights = np.dot(X.T, d_output)\n",
+        "    d_bias = np.sum(d_output)\n",
+        "\n",
+        "    weights += learning_rate * d_weights\n",
+        "    bias += learning_rate * d_bias\n",
+        "\n",
+        "    return weights, bias\n",
+        "\n",
+        "# Mean Square Error\n",
+        "def mean_square_error(y_true, y_pred):\n",
+        "    return np.mean((y_true - y_pred) ** 2)\n",
+        "\n",
+        "# Training the model\n",
+        "def train_model(X_train, y_train, weights, bias, learning_rate, epochs):\n",
+        "    for epoch in range(epochs):\n",
+        "        for i in range(len(X_train)):\n",
+        "            output = forward_propagation(X_train[i], weights, bias)\n",
+        "            weights, bias = backpropagation(X_train[i], y_train[i], output, weights, bias, learning_rate)\n",
+        "        if epoch % 1000 == 0:\n",
+        "            loss = mean_square_error(y_train, [forward_propagation(x, weights, bias) for x in X_train])\n",
+        "            print(f\"Epoch {epoch}, Loss: {loss}\")\n",
+        "    return weights, bias\n",
+        "\n",
+        "# Predict function\n",
+        "def predict(X, weights, bias):\n",
+        "    return forward_propagation(X, weights, bias)\n",
+        "\n",
+        "# Training Data\n",
+        "X_train = np.array([\n",
+        "    [0.1, 0.2, 0.3],\n",
+        "    [0.2, 0.3, 0.4],\n",
+        "    [0.3, 0.4, 0.5],\n",
+        "    [0.5, 0.6, 0.7],\n",
+        "    [0.1, 0.3, 0.5],\n",
+        "    [0.2, 0.4, 0.6],\n",
+        "    [0.3, 0.5, 0.7],\n",
+        "    [0.4, 0.6, 0.8],\n",
+        "    [0.5, 0.7, 0.1]\n",
+        "])\n",
+        "\n",
+        "y_train = np.array([0.5349, 0.5498, 0.5646, 0.5939, 0.5548, 0.5695, 0.5842, 0.5987, 0.5548])\n",
+        "\n",
+        "# Testing Data\n",
+        "X_test = np.array([\n",
+        "    [0.6, 0.7, 0.8],\n",
+        "    [0.7, 0.8, 0.9]\n",
+        "])\n",
+        "\n",
+        "y_test = np.array([0.6083, 0.6225])\n",
+        "\n",
+        "# Initialize parameters\n",
+        "input_size = X_train.shape[1]\n",
+        "weights, bias = initialize_parameters(input_size)\n",
+        "\n",
+        "# Hyperparameters\n",
+        "learning_rate = 0.1\n",
+        "epochs = 10000\n",
+        "\n",
+        "# Train the model\n",
+        "weights, bias = train_model(X_train, y_train, weights, bias, learning_rate, epochs)\n",
+        "\n",
+        "# Calculate MSE for training data\n",
+        "y_train_pred = np.array([predict(x, weights, bias) for x in X_train])\n",
+        "train_mse = mean_square_error(y_train, y_train_pred)\n",
+        "print(f\"Training MSE: {train_mse}\")\n",
+        "\n",
+        "# Calculate MSE for testing data\n",
+        "y_test_pred = np.array([predict(x, weights, bias) for x in X_test])\n",
+        "test_mse = mean_square_error(y_test, y_test_pred)\n",
+        "print(f\"Testing MSE: {test_mse}\")\n",
+        "\n",
+        "# User input for prediction\n",
+        "user_input = np.array([float(input(f\"Enter x{i+1}: \")) for i in range(input_size)])\n",
+        "predicted_output = predict(user_input, weights, bias)\n",
+        "print(f\"Predicted Output: {predicted_output}\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "BNNph0D6UxsP",
+        "outputId": "5ef24811-2e78-42d2-f188-86cd60fdae11"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Epoch 0, Loss: 0.007369925887400484\n",
+            "Epoch 1000, Loss: 2.295063850832063e-05\n",
+            "Epoch 2000, Loss: 1.5178430831689215e-05\n",
+            "Epoch 3000, Loss: 1.335126458664461e-05\n",
+            "Epoch 4000, Loss: 1.18155015490245e-05\n",
+            "Epoch 5000, Loss: 1.0457195576580596e-05\n",
+            "Epoch 6000, Loss: 9.254908829917707e-06\n",
+            "Epoch 7000, Loss: 8.190752270132371e-06\n",
+            "Epoch 8000, Loss: 7.248876456549037e-06\n",
+            "Epoch 9000, Loss: 6.415245298548164e-06\n",
+            "Training MSE: 5.678124859008424e-06\n",
+            "Testing MSE: 2.031213158491532e-05\n",
+            "Enter x1: 0.6\n",
+            "Enter x2: 0.7\n",
+            "Enter x3: .8\n",
+            "Predicted Output: 0.6125595045101633\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
